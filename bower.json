@@ -4,7 +4,7 @@
     "Hernan Andres Picatto <h.picatto@gmail.com>"
   ],
   "description": "A wordcloud project using dc.js y crossfilters",
-  "main": "index.html",
+  "main": "index.php",
   "keywords": [
     "cloud",
     "tag",
