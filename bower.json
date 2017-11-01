@@ -1,0 +1,31 @@
+{
+  "name": "wordcloud",
+  "authors": [
+    "Hernan Andres Picatto <h.picatto@gmail.com>"
+  ],
+  "description": "A wordcloud project using dc.js y crossfilters",
+  "main": "index.html",
+  "keywords": [
+    "cloud",
+    "tag",
+    "word",
+    "dc.js",
+    "crossfilter"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "dcjs": "dc.js#^2.1.9",
+    "d3-tip": "^0.7.1",
+    "d3-cloud": "d3.layout.cloud#^1.2.4",
+    "jQuery": "^3.2.1"
+  }
+}
