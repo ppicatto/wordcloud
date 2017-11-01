@@ -28,10 +28,21 @@ var wordcloudChart = dc.wordcloudChart('#cloudChart');
         wordcloudChart.render();
     }
 
-    d3.json(data, function (key) {
-        console.log(key);
-        var ndx = crossfilter(key);
-        
+    d3.json("data/china_fixed.json", function (key) {
+        var i = 0;
+        // Convert JSON to content only array.
+        var arr = $.map(key, function(el) {i++; return el.content;});
+
+        // Join array values to single string, split words in to an array, remove empty values.
+        arr = $.grep((arr.join(",")).split(" "), function(n, i){
+            return (n !== "" && n != null);
+        })
+        var counts = _.countBy(arr);
+        var words =  _.map(counts, function(value, key){
+            return {"key": key, "value": value};
+        });
+        console.log(words);
+        var ndx = crossfilter(words);
         drawWordcloudChart(ndx);
 
     })
