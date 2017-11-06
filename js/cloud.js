@@ -1,11 +1,11 @@
 var wordcloudChart = dc.wordcloudChart('#cloudChart');
 
 (function(){
-	'use strict'
+    'use strict'
 
 	function drawWordcloudChart(ndx){
 		var wordDim = ndx.dimension(function(d){
-            console.log(d);
+            // console.log(d);
             return d.key;
         });
         
@@ -27,24 +27,68 @@ var wordcloudChart = dc.wordcloudChart('#cloudChart');
     
         wordcloudChart.render();
     }
-
-    d3.json("data/china_fixed.json", function (key) {
-        var i = 0;
-        // Convert JSON to content only array.
-        var arr = $.map(key, function(el) {i++; return el.content;});
-
-        // Join array values to single string, split words in to an array, remove empty values.
-        arr = $.grep((arr.join(",")).split(" "), function(n, i){
-            return (n !== "" && n != null);
-        })
-        var counts = _.countBy(arr);
-        var words =  _.map(counts, function(value, key){
-            return {"key": key, "value": value};
+    $.get( "data/china_fixed.json", function( data ) {
+        // table name, version, description, size (1024 MB)
+        var db = openDatabase('tweets', '1', 'tweets list db', 1024 * 1024 * 1024);
+        db.transaction(function(tx) {
+            tx.executeSql("CREATE TABLE IF NOT EXISTS tweetsTable (articleId TEXT, title TEXT, news_title TEXT, news_location TEXT, news_localgov TEXT, news_circulationLevel TEXT, news_Start TEXT, news_end TEXT, authorType_name TEXT, keywords TEXT, Place TEXT, OrganisationType TEXT, peopleMentioned TEXT, imageURL TEXT, videoURL TEXT, pageNumber TEXT, page TEXT, file TEXT, content TEXT, date TEXT);", []);
+            var sql = "INSERT OR REPLACE INTO tweetsTable (articleId, title, news_title, news_location, news_localgov, news_circulationLevel, news_Start, news_end, authorType_name, keywords, Place, OrganisationType, peopleMentioned, imageURL, videoURL, pageNumber, page, file, content, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+            // console.log('Inserting or Updating in local database:');
+        
+            for (let o in data) {
+                // console.log(data[o].articleId + ' ' + data[o].title + ' ' + data[o]['newsPaper.title'] + ' ' + data[o]['newsPaper.location'] + ' ' + data[o]['newsPaper.localgov'] + ' ' + data[o]['newsPaper.circulationLevel'] + ' ' + data[o]['newsPaper.Start'] + ' ' + data[o]['newsPaper.end'] + ' ' + data[o]['authorType.name'] + ' ' + data[o]['keywords'] + ' ' + data[o]['Place'] + ' ' + data[o]['OrganisationType'] + ' ' + data[o].peopleMentioned + ' ' + data[o].imageURL + ' ' + data[o].videoURL + ' ' + data[o].pageNumber + ' ' + data[o].page + ' ' + data[o].file + ' ' + data[o].content + ' ' + data[o].date);
+                let params = [data[o].articleId, data[o].title, data[o]['newsPaper.title'], data[o]['newsPaper.location'], data[o]['newsPaper.localgov'], data[o]['newsPaper.circulationLevel'], data[o]['newsPaper.Start'], data[o]['newsPaper.end'], data[o]['authorType.name'], data[o].keywords, data[o].Place, data[o].OrganisationType, data[o].peopleMentioned, data[o].imageURL, data[o].videoURL, data[o].pageNumber, data[o].page, data[o].file, data[o].content, data[o].date];
+                tx.executeSql(sql, params);
+                console.log('Synchronization complete (' + o + ' items synchronized)');
+            }
+        }, this.txErrorHandler, function(tx) {
+            generateCloud();
         });
-        console.log(words);
-        var ndx = crossfilter(words);
-        drawWordcloudChart(ndx);
+    });    
+    $('#btnStopWord').click(function(){
+        let word = $('<li>').text($('#txtStopWord').val());
+        word.click(function(){
+            $(this).remove();
+            generateCloud();
+        });
+        $('#ulStopWord').append(word);
+        generateCloud();
+        $('#txtStopWord').val("");
+    });
+    function generateCloud() {
+        var db = openDatabase('tweets', '1', 'tweets list db', 1024 * 1024 * 1024);
+        db.transaction(function (tran) {
+            var content = '';
+            // var values = $('#ulStopWord li').map(function(){ 
+            //     return 'NOT LIKE "' + $(this).text() + '"'; 
+            // }).get().join(' OR ');
+            tran.executeSql('SELECT content FROM tweetsTable limit 10', [], function (tran, data) {
+                var i = 0;
+                // Convert JSON to content only array.
+                var arr = $.map(data.rows, function(el) {
+                    if ($('#ulStopWord li').get().length == 0   ) {
+                        i++; return el.content;
+                    }
+                    for (let idx in $('#ulStopWord li').get()) {
+                        if (el.content.indexOf($($('#ulStopWord li').get()[idx]).text()) == -1) {
+                            i++; return el.content;
+                        }
+                    }
 
-    })
-
+                    return '';
+                });
+                // Join array values to single string, split words in to an array, remove empty values.
+                arr = $.grep((arr.join(",")).split(" "), function(n, i){
+                    return (n !== "" && n != null);
+                })
+                var counts = _.countBy(arr);
+                var words =  _.map(counts, function(value, key) {
+                    return {"key": key, "value": value};
+                });
+                console.log(words);
+                var ndx = crossfilter(words);
+                drawWordcloudChart(ndx);
+            });
+        });
+    }
 })();

@@ -5,20 +5,23 @@
         <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
         <meta content="utf-8" http-equiv="encoding">
         <link rel="stylesheet" type="text/css" href="bower_components/dcjs/dc.css"/>
+        <link rel="stylesheet" type="text/css" href="css/style.css"/>
     </head>
     <body>
         <div id="cloudChart"></div>
-
-        <script type="text/javascript" src="bower_components/jQuery/dist/jquery.min.js"></script>
+        <div class="stopWords">
+            <label for"txtStopWord">Stop word</label><input id="txtStopWord"/><button id="btnStopWord">add</button>
+            <h3>Stop words:</h3>
+            <ul id="ulStopWord">
+            </ul>
+        </div>
+        <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
         <script type="text/javascript" src="js/underscore-min.js"></script>
         <script type="text/javascript" src="https://dc-js.github.io/dc.js/js/d3.js"></script>
         <script type="text/javascript" src="https://dc-js.github.io/dc.js/js/crossfilter.js"></script>
         <script type="text/javascript" src="https://dc-js.github.io/dc.js/js/dc.js"></script>
         <script type="text/javascript" src="js/d3.layout.cloud.js"></script>
         <script type="text/javascript" src="js/dc-wordcloud.js"></script>
-        <script type="text/javascript">
-            var data = 'data/china_fixed.json';
-        </script>
         <script type="text/javascript" src="js/cloud.js"></script>
     </body>
 </html>
