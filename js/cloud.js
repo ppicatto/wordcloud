@@ -44,8 +44,16 @@ var wordcloudChart = dc.wordcloudChart('#cloudChart');
         }, this.txErrorHandler, function(tx) {
             generateCloud();
         });
-    });    
+    });
+
+    $('#btnMaxWords').click(function(){
+        generateCloud();
+    });
+
     $('#btnStopWord').click(function(){
+        if (!$('#txtStopWord').val()) {
+            return false;
+        }
         let word = $('<li>').text($('#txtStopWord').val());
         word.click(function(){
             $(this).remove();
@@ -59,23 +67,23 @@ var wordcloudChart = dc.wordcloudChart('#cloudChart');
         var db = openDatabase('tweets', '1', 'tweets list db', 1024 * 1024 * 1024);
         db.transaction(function (tran) {
             var content = '';
-            // var values = $('#ulStopWord li').map(function(){ 
-            //     return 'NOT LIKE "' + $(this).text() + '"'; 
-            // }).get().join(' OR ');
             tran.executeSql('SELECT content FROM tweetsTable limit 10', [], function (tran, data) {
-                var i = 0;
                 // Convert JSON to content only array.
                 var arr = $.map(data.rows, function(el) {
-                    if ($('#ulStopWord li').get().length == 0   ) {
-                        i++; return el.content;
+                    let stopWordList = $($('#ulStopWord li').get());
+                    if (!stopWordList.length) {
+                        return el.content;
                     }
-                    for (let idx in $('#ulStopWord li').get()) {
-                        if (el.content.indexOf($($('#ulStopWord li').get()[idx]).text()) == -1) {
-                            i++; return el.content;
+                    let returnEl = true;
+                    for (let idx = 0; idx < stopWordList.length; idx++) {
+                        if (el.content.indexOf($(stopWordList[idx]).text()) != -1) {
+
+                            returnEl = false;
                         }
                     }
-
-                    return '';
+                    if (returnEl) {
+                        return el.content;
+                    }
                 });
                 // Join array values to single string, split words in to an array, remove empty values.
                 arr = $.grep((arr.join(",")).split(" "), function(n, i){
@@ -85,7 +93,13 @@ var wordcloudChart = dc.wordcloudChart('#cloudChart');
                 var words =  _.map(counts, function(value, key) {
                     return {"key": key, "value": value};
                 });
-                console.log(words);
+                words = _.sortBy(words, 'value');
+                console.log($("#txtMaxWords").val());
+                if ($("#txtMaxWords").val()) {
+                    console.error(words);
+                    words = words.slice(0, $("#txtMaxWords").val());
+                    console.log(words);
+                }
                 var ndx = crossfilter(words);
                 drawWordcloudChart(ndx);
             });
