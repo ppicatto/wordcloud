@@ -69,36 +69,32 @@ var wordcloudChart = dc.wordcloudChart('#cloudChart');
             var content = '';
             tran.executeSql('SELECT content FROM tweetsTable limit 10', [], function (tran, data) {
                 // Convert JSON to content only array.
-                var arr = $.map(data.rows, function(el) {
-                    let stopWordList = $($('#ulStopWord li').get());
-                    if (!stopWordList.length) {
-                        return el.content;
-                    }
-                    let returnEl = true;
-                    for (let idx = 0; idx < stopWordList.length; idx++) {
-                        if (el.content.indexOf($(stopWordList[idx]).text()) != -1) {
-
-                            returnEl = false;
-                        }
-                    }
-                    if (returnEl) {
-                        return el.content;
-                    }
-                });
+                var arr = $.map(data.rows, function(el) { return el.content; });
                 // Join array values to single string, split words in to an array, remove empty values.
                 arr = $.grep((arr.join(",")).split(" "), function(n, i){
-                    return (n !== "" && n != null);
+                    if (!(n !== "" && n != null)) {
+                        return false;
+                    }
+                    let stopWordList = $($('#ulStopWord li').get());
+                    if (!stopWordList.length) {
+                        return true;
+                    }
+                    for (let idx = 0; idx < stopWordList.length; idx++) {
+                        if (n === $(stopWordList[idx]).text()) {
+
+                            return false;
+                        }
+                    }
+
+                    return true;
                 })
                 var counts = _.countBy(arr);
                 var words =  _.map(counts, function(value, key) {
                     return {"key": key, "value": value};
                 });
-                words = _.sortBy(words, 'value');
-                console.log($("#txtMaxWords").val());
+                words = (_.sortBy(words, 'value')).reverse();
                 if ($("#txtMaxWords").val()) {
-                    console.error(words);
                     words = words.slice(0, $("#txtMaxWords").val());
-                    console.log(words);
                 }
                 var ndx = crossfilter(words);
                 drawWordcloudChart(ndx);
