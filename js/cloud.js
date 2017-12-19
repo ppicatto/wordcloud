@@ -1,5 +1,10 @@
 var wordcloudChart = dc.wordcloudChart('#cloudChart');
 
+// jquery function to get text only on wordcloud elements
+$.fn.immediateText = function() {
+    return this.contents().not(this.children()).text();
+};
+
 (function(){
     'use strict'
 
@@ -63,6 +68,20 @@ var wordcloudChart = dc.wordcloudChart('#cloudChart');
         generateCloud();
         $('#txtStopWord').val("");
     });
+
+    $('#btnDoNotWord').click(function(){
+        if (!$('#txtDoNotWord').val()) {
+            return false;
+        }
+        let word = $('<li>').text($('#txtDoNotWord').val());
+        word.click(function(){
+            $(this).remove();
+            generateCloud();
+        });
+        $('#ulDoNotWord').append(word);
+        generateCloud();
+        $('#txtDoNotWord').val("");
+    });
     function generateCloud() {
         var db = openDatabase('tweets', '1', 'tweets list db', 1024 * 1024 * 1024);
         db.transaction(function (tran) {
@@ -76,11 +95,21 @@ var wordcloudChart = dc.wordcloudChart('#cloudChart');
                         return false;
                     }
                     let stopWordList = $($('#ulStopWord li').get());
-                    if (!stopWordList.length) {
+                    if (stopWordList.length) {
+                        for (let idx = 0; idx < stopWordList.length; idx++) {
+                            if (n === $(stopWordList[idx]).text()) {
+
+                                return false;
+                            }
+                        } 
+                    }
+
+                    let DoNotWordList = $($('#ulDoNotWord li').get());
+                    if (!DoNotWordList.length) {
                         return true;
                     }
-                    for (let idx = 0; idx < stopWordList.length; idx++) {
-                        if (n === $(stopWordList[idx]).text()) {
+                    for (let idx = 0; idx < DoNotWordList.length; idx++) {
+                        if (n !== $(DoNotWordList[idx]).text()) {
 
                             return false;
                         }
@@ -99,6 +128,25 @@ var wordcloudChart = dc.wordcloudChart('#cloudChart');
                 var ndx = crossfilter(words);
                 drawWordcloudChart(ndx);
             });
+        });
+        loadContextMenu();
+    };
+    function loadContextMenu() {
+        $.contextMenu({
+            selector: '#cloudChart svg text', 
+            callback: function(key, options) {
+                if ("filter-by" === key) {
+                    $("#txtStopWord").val($(this).immediateText());
+                    $("#btnStopWord").click();
+                } else if ("filter-not-contain" === key) {
+                    $("#txtDoNotWord").val($(this).immediateText());
+                    $("#btnDoNotWord").click();
+                }
+            },
+            items: {
+                "filter-by": {name: "Contain word"},
+                "filter-not-contain": {name: "Do not contain it"},
+            }
         });
     }
 })();
