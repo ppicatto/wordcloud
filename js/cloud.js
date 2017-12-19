@@ -144,8 +144,8 @@ $.fn.immediateText = function() {
                 }
             },
             items: {
-                "filter-by": {name: "Contain word"},
-                "filter-not-contain": {name: "Do not contain it"},
+                "filter-by": {name: "Do not contain it"},
+                "filter-not-contain": {name: "Contain word"},
             }
         });
     }
