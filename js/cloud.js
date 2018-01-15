@@ -4,6 +4,16 @@ var wordcloudChart = dc.wordcloudChart('#cloudChart');
 $.fn.immediateText = function() {
     return this.contents().not(this.children()).text();
 };
+var stopWordsFromFile = [];
+$.ajax({
+    url: './bower_components/stopwords-zh/stopwords-zh.json',
+    async: false,
+    dataType: 'json',
+    success: function (response) {
+        stopWordsFromFile = response;
+        console.log(stopWordsFromFile);
+    }
+});
 
 (function(){
     'use strict'
@@ -88,20 +98,26 @@ $.fn.immediateText = function() {
             var content = '';
             tran.executeSql('SELECT content FROM tweetsTable limit 10', [], function (tran, data) {
                 // Convert JSON to content only array.
-                var arr = $.map(data.rows, function(el) { return el.content; });
+                var arr = $.map(data.rows, function(el) { 
+                    let stopWordList = $($('#ulStopWord li').get());
+                    if (stopWordList.length) {
+                        for (let idx = 0; idx < stopWordList.length; idx++) {
+                            if (el.content.indexOf($(stopWordList[idx]).text()) !== -1) {
+                                return el.content;
+                            }
+                        }
+                    } else {
+                        return el.content;
+                    }
+                });
+
                 // Join array values to single string, split words in to an array, remove empty values.
                 arr = $.grep((arr.join(",")).split(" "), function(n, i){
                     if (!(n !== "" && n != null)) {
                         return false;
                     }
-                    let stopWordList = $($('#ulStopWord li').get());
-                    if (stopWordList.length) {
-                        for (let idx = 0; idx < stopWordList.length; idx++) {
-                            if (n === $(stopWordList[idx]).text()) {
-
-                                return false;
-                            }
-                        } 
+                    if ($.isNumeric(n) || $.inArray(n, ['“', ',', '”', '——']) !== -1 || $.inArray(n, stopWordsFromFile) !== -1) {
+                        return false;
                     }
 
                     let DoNotWordList = $($('#ulDoNotWord li').get());
@@ -109,7 +125,8 @@ $.fn.immediateText = function() {
                         return true;
                     }
                     for (let idx = 0; idx < DoNotWordList.length; idx++) {
-                        if (n !== $(DoNotWordList[idx]).text()) {
+                        console.log(n, $(DoNotWordList[idx]).text());
+                        if (n === $(DoNotWordList[idx]).text()) {
 
                             return false;
                         }
@@ -144,8 +161,8 @@ $.fn.immediateText = function() {
                 }
             },
             items: {
-                "filter-by": {name: "Do not contain it"},
-                "filter-not-contain": {name: "Contain word"},
+                "filter-by": {name: "Contain word"},
+                "filter-not-contain": {name: "Do not contain it"},
             }
         });
     }
