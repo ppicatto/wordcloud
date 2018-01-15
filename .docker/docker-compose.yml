@@ -1,27 +1,40 @@
 version: "3.1"
 services:
-
-    webserver:
-      image: nginx:alpine
-      container_name: wordcloud-webserver
-      working_dir: /application
-      volumes:
-          - ../:/application
-          - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      ports:
-       - "80:80"
-
-    php-fpm:
-      image: php:7.2-fpm
-      container_name: wordcloud-php-fpm
-      working_dir: /application
-      volumes:
+  webserver:
+    image: nginx:alpine
+    container_name: wordcloud-webserver
+    working_dir: /application
+    volumes:
         - ../:/application
-        - ./php-fpm/php-ini-overrides.ini:/etc/php/7.2/fpm/conf.d/99-overrides.ini
+        - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+    networks:
+      - wordcloud
 
-    composer:
-      image: composer:latest
-      container_name: wordcloud-composer
-      working_dir: /app
-      volumes:
-        - ../:/app
+  php-fpm:
+    image: php:7.2-fpm
+    container_name: wordcloud-php-fpm
+    working_dir: /application
+    volumes:
+      - ../:/application
+      - ./php-fpm/php-ini-overrides.ini:/etc/php/7.2/fpm/conf.d/99-overrides.ini
+    networks:
+      - wordcloud
+
+  composer:
+    build: composer
+    volumes:
+      - ./../:/app
+      - ~/.ssh/known_hosts:/root/.ssh/known_hosts
+      - ${SSH_AUTH_SOCK}:/ssh-agent
+    environment:
+      SSH_AUTH_SOCK: /ssh-agent
+      COMPOSER_HOME: ./composer
+    user: www-data
+    networks:
+      - wordcloud
+
+networks:
+  wordcloud:
+    driver: bridge
