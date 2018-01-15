@@ -1,0 +1,16 @@
+{
+    "name": "hpicatto/wordcloud",
+    "description": "Chinese wordcloud",
+    "type": "project",
+    "require": {
+        "beelab/bowerphp": "^0.5.3"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Hernan Picatto",
+            "email": "h.picatto@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
